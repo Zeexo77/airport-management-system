@@ -1,0 +1,250 @@
+DROP DATABASE IF EXISTS airport_management;
+CREATE DATABASE airport_management;
+USE airport_management;
+
+-- 1. AIRPLANE MODEL
+CREATE TABLE Airplane_Model (
+                                model_no VARCHAR(20) PRIMARY KEY,
+                                capacity INT NOT NULL,
+                                weight DECIMAL(10,2)
+);
+
+-- 2. AIRPLANE
+CREATE TABLE Airplane (
+                          plane_no VARCHAR(20) PRIMARY KEY,
+                          model_no VARCHAR(20) NOT NULL,
+                          FOREIGN KEY (model_no) REFERENCES Airplane_Model(model_no)
+);
+
+-- 3. HANGAR
+CREATE TABLE Hangar (
+                        hangar_no INT PRIMARY KEY,
+                        location VARCHAR(100) NOT NULL,
+                        capacity INT NOT NULL
+);
+
+-- 4. AIRPLANE LOCATION HISTORY
+CREATE TABLE Airplane_Location (
+                                   location_id INT AUTO_INCREMENT PRIMARY KEY,
+                                   plane_no VARCHAR(20) NOT NULL,
+                                   hangar_no INT NOT NULL,
+                                   in_date DATE NOT NULL,
+                                   out_date DATE,
+                                   FOREIGN KEY (plane_no) REFERENCES Airplane(plane_no),
+                                   FOREIGN KEY (hangar_no) REFERENCES Hangar(hangar_no)
+);
+
+-- 5. EMPLOYEE
+CREATE TABLE Employee (
+                          ssn VARCHAR(20) PRIMARY KEY,
+                          name VARCHAR(100) NOT NULL,
+                          phone VARCHAR(20),
+                          address VARCHAR(150),
+                          salary DECIMAL(10,2),
+                          union_member_no VARCHAR(30) UNIQUE NOT NULL
+);
+
+-- 6. TECHNICIAN
+CREATE TABLE Technician (
+                            ssn VARCHAR(20) PRIMARY KEY,
+                            FOREIGN KEY (ssn) REFERENCES Employee(ssn)
+);
+
+-- 7. TRAFFIC CONTROLLER
+CREATE TABLE Traffic_Controller (
+                                    ssn VARCHAR(20) PRIMARY KEY,
+                                    most_recent_exam_date DATE NOT NULL,
+                                    FOREIGN KEY (ssn) REFERENCES Employee(ssn)
+);
+
+-- 8. AIRPORT WORKER
+CREATE TABLE Airport_Worker (
+                                ssn VARCHAR(20) PRIMARY KEY,
+                                job_title VARCHAR(50),
+                                FOREIGN KEY (ssn) REFERENCES Employee(ssn)
+);
+
+-- 9. TECHNICIAN EXPERTISE
+CREATE TABLE Technician_Expertise (
+                                      ssn VARCHAR(20),
+                                      model_no VARCHAR(20),
+                                      PRIMARY KEY (ssn, model_no),
+                                      FOREIGN KEY (ssn) REFERENCES Technician(ssn),
+                                      FOREIGN KEY (model_no) REFERENCES Airplane_Model(model_no)
+);
+
+-- 10. TEST
+CREATE TABLE Test (
+                      test_no INT PRIMARY KEY,
+                      test_name VARCHAR(100) NOT NULL,
+                      max_score INT NOT NULL
+);
+
+-- 11. TEST EVENT
+CREATE TABLE Test_Event (
+                            event_id INT AUTO_INCREMENT PRIMARY KEY,
+                            plane_no VARCHAR(20) NOT NULL,
+                            ssn VARCHAR(20) NOT NULL,
+                            test_no INT NOT NULL,
+                            test_date DATE NOT NULL,
+                            hours_spent DECIMAL(5,2) NOT NULL,
+                            score INT NOT NULL,
+                            FOREIGN KEY (plane_no) REFERENCES Airplane(plane_no),
+                            FOREIGN KEY (ssn) REFERENCES Technician(ssn),
+                            FOREIGN KEY (test_no) REFERENCES Test(test_no)
+);
+
+-- INSERT DATA
+
+INSERT INTO Airplane_Model VALUES
+                               ('B737', 180, 41400),
+                               ('A320', 170, 42600),
+                               ('B777', 396, 167800),
+                               ('A380', 853, 277000);
+
+INSERT INTO Airplane VALUES
+                         ('P1001', 'B737'),
+                         ('P1002', 'A320'),
+                         ('P1003', 'B777'),
+                         ('P1004', 'A380'),
+                         ('P1005', 'B737');
+
+INSERT INTO Hangar VALUES
+                       (1, 'North Area', 5),
+                       (2, 'South Area', 4),
+                       (3, 'East Area', 6);
+
+INSERT INTO Airplane_Location
+(plane_no, hangar_no, in_date, out_date) VALUES
+                                             ('P1001', 1, '2026-01-01', '2026-02-01'),
+                                             ('P1001', 2, '2026-02-02', NULL),
+                                             ('P1002', 1, '2026-01-10', NULL),
+                                             ('P1003', 3, '2026-03-01', NULL),
+                                             ('P1004', 2, '2026-02-20', NULL),
+                                             ('P1005', 1, '2026-04-01', NULL);
+
+INSERT INTO Employee VALUES
+                         ('111', 'Ahmed Ali', '0551111111', 'Nicosia', 2500, 'U001'),
+                         ('222', 'Sara Omar', '0552222222', 'Kyrenia', 2800, 'U002'),
+                         ('333', 'John Smith', '0553333333', 'Famagusta', 3000, 'U003'),
+                         ('444', 'Mona Hassan', '0554444444', 'Nicosia', 2700, 'U004'),
+                         ('555', 'Ali Khan', '0555555555', 'Lefke', 2400, 'U005'),
+                         ('666', 'David Brown', '0556666666', 'Nicosia', 2600, 'U006');
+
+INSERT INTO Technician VALUES
+                           ('111'),
+                           ('222'),
+                           ('333');
+
+INSERT INTO Traffic_Controller VALUES
+                                   ('444', '2026-04-15'),
+                                   ('555', '2026-03-20');
+
+INSERT INTO Airport_Worker VALUES
+    ('666', 'Cleaner');
+
+INSERT INTO Technician_Expertise VALUES
+                                     ('111', 'B737'),
+                                     ('111', 'A320'),
+                                     ('222', 'B777'),
+                                     ('333', 'A380'),
+                                     ('333', 'B737');
+
+INSERT INTO Test VALUES
+                     (1, 'Engine Test', 100),
+                     (2, 'Landing Gear Test', 100),
+                     (3, 'Fuel System Test', 100),
+                     (4, 'Safety Test', 100);
+
+INSERT INTO Test_Event
+(plane_no, ssn, test_no, test_date, hours_spent, score) VALUES
+                                                            ('P1001', '111', 1, '2026-04-01', 3.5, 90),
+                                                            ('P1001', '111', 2, '2026-04-05', 2.0, 85),
+                                                            ('P1002', '111', 1, '2026-04-07', 4.0, 88),
+                                                            ('P1003', '222', 3, '2026-04-10', 5.5, 92),
+                                                            ('P1004', '333', 4, '2026-04-12', 6.0, 95),
+                                                            ('P1005', '333', 1, '2026-04-15', 3.0, 80),
+                                                            ('P1003', '222', 2, '2026-04-18', 2.5, 89);
+
+-- 15 REQUIRED QUERIES
+
+-- 1. Show all airplanes with their models
+SELECT a.plane_no, a.model_no, m.capacity
+FROM Airplane a
+         JOIN Airplane_Model m ON a.model_no = m.model_no;
+
+-- 2. Show current location of airplanes
+SELECT a.plane_no, h.hangar_no, h.location
+FROM Airplane_Location al
+         JOIN Airplane a ON al.plane_no = a.plane_no
+         JOIN Hangar h ON al.hangar_no = h.hangar_no
+WHERE al.out_date IS NULL;
+
+-- 3. Show all technicians
+SELECT e.ssn, e.name, e.phone
+FROM Employee e
+         JOIN Technician t ON e.ssn = t.ssn;
+
+-- 4. Show technician expertise
+SELECT e.name, te.model_no
+FROM Technician_Expertise te
+         JOIN Employee e ON te.ssn = e.ssn;
+
+-- 5. Show traffic controllers and exam dates
+SELECT e.name, tc.most_recent_exam_date
+FROM Traffic_Controller tc
+         JOIN Employee e ON tc.ssn = e.ssn;
+
+-- 6. Show all test events
+SELECT te.event_id, te.plane_no, e.name AS technician, t.test_name, te.test_date, te.score
+FROM Test_Event te
+         JOIN Employee e ON te.ssn = e.ssn
+         JOIN Test t ON te.test_no = t.test_no;
+
+-- 7. Average score for each airplane
+SELECT plane_no, AVG(score) AS average_score
+FROM Test_Event
+GROUP BY plane_no;
+
+-- 8. Number of tests done by each technician
+SELECT e.name, COUNT(*) AS total_tests
+FROM Test_Event te
+         JOIN Employee e ON te.ssn = e.ssn
+GROUP BY e.name;
+
+-- 9. Airplanes with score greater than 90
+SELECT plane_no, score
+FROM Test_Event
+WHERE score > 90;
+
+-- 10. Total hours spent by each technician
+SELECT e.name, SUM(te.hours_spent) AS total_hours
+FROM Test_Event te
+         JOIN Employee e ON te.ssn = e.ssn
+GROUP BY e.name;
+
+-- 11. Highest test score
+SELECT MAX(score) AS highest_score
+FROM Test_Event;
+
+-- 12. Lowest test score
+SELECT MIN(score) AS lowest_score
+FROM Test_Event;
+
+-- 13. Tests performed after 2026-04-10
+SELECT *
+FROM Test_Event
+WHERE test_date > '2026-04-10';
+
+-- 14. Count airplanes in each hangar currently
+SELECT h.hangar_no, h.location, COUNT(al.plane_no) AS total_airplanes
+FROM Hangar h
+         LEFT JOIN Airplane_Location al
+                   ON h.hangar_no = al.hangar_no AND al.out_date IS NULL
+GROUP BY h.hangar_no, h.location;
+
+-- 15. Find technicians expert in B737
+SELECT e.name
+FROM Technician_Expertise te
+         JOIN Employee e ON te.ssn = e.ssn
+WHERE te.model_no = 'B737';
